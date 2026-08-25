@@ -12,7 +12,7 @@ An institutional-grade empirical quantitative finance research capstone investig
 
 > [!NOTE]
 > **Research Compliance & Academic Integrity Disclaimer**  
-> All empirical results, loss metrics, Diebold-Mariano $p$-values, portfolio returns, and Sharpe ratios reported in this repository are derived strictly from live out-of-sample walk-forward experiments on historical market data ($N = 3,679$ daily observations, 2010–2024). No performance values or figures have been synthetically manufactured. Reported empirical results should not be interpreted as guaranteed future investment performance.
+> All empirical results, loss metrics, Diebold-Mariano p-values, portfolio returns, and Sharpe ratios reported in this repository are derived strictly from live out-of-sample walk-forward experiments on historical market data (N = 3,679 daily observations, 2010–2024). No performance values or figures have been synthetically manufactured. Reported empirical results should not be interpreted as guaranteed future investment performance.
 
 ---
 
@@ -53,11 +53,11 @@ flowchart LR
 ```
 
 ### Formal Research Hypotheses
-- **Hypothesis 1 ($H_1$):** Classical GARCH(1,1) provides statistically superior out-of-sample volatility forecasts compared to a simple rolling historical volatility baseline. *(Not supported, $p = 0.7253$)*
-- **Hypothesis 2 ($H_2$):** Non-parametric machine learning models (Random Forest, XGBoost) capture non-linear market feature interactions to provide statistically superior predictive accuracy over standalone GARCH. *(Supported at 1% significance level, $p < 0.01$)*
-- **Hypothesis 3 ($H_3$):** An integrated Hybrid GARCH + ML framework combining structural econometric conditional variance with gradient boosting achieves near-zero forecast bias. *(Supported, Mean Bias $= +0.0014$)*
-- **Hypothesis 4 ($H_4$):** Statistically superior volatility forecasts translate directly into superior gross returns in dynamic volatility targeting. *(Supported, XGBoost Gross CAGR $= 15.44\%$ vs GARCH $= 15.28\%$)*
-- **Hypothesis 5 ($H_5$):** Real-world transaction costs and execution slippage disproportionately penalize high-responsiveness ML models due to portfolio turnover, reducing their net economic advantage over smooth econometric models. *(Decisively Validated)*
+- **Hypothesis 1 (H1):** Classical GARCH(1,1) provides statistically superior out-of-sample volatility forecasts compared to a simple rolling historical volatility baseline. *(Not supported, p = 0.7253)*
+- **Hypothesis 2 (H2):** Non-parametric machine learning models (Random Forest, XGBoost) capture non-linear market feature interactions to provide statistically superior predictive accuracy over standalone GARCH. *(Supported at 1% significance level, p < 0.01)*
+- **Hypothesis 3 (H3):** An integrated Hybrid GARCH + ML framework combining structural econometric conditional variance with gradient boosting achieves near-zero forecast bias. *(Supported, Mean Bias = +0.0014)*
+- **Hypothesis 4 (H4):** Statistically superior volatility forecasts translate directly into superior gross returns in dynamic volatility targeting. *(Supported, XGBoost Gross CAGR = 15.44% vs GARCH = 15.28%)*
+- **Hypothesis 5 (H5):** Real-world transaction costs and execution slippage disproportionately penalize high-responsiveness ML models due to portfolio turnover, reducing their net economic advantage over smooth econometric models. *(Decisively Validated)*
 
 ---
 
@@ -110,53 +110,53 @@ flowchart TD
 
 ## 3. Dataset & Market Stylized Facts
 
-The study is conducted on daily continuous prices of the **NIFTY 50 Index (`^NSEI`)** covering **January 4, 2010 to December 30, 2024** ($N = 3,679$ trading days).
+The study is conducted on daily continuous prices of the **NIFTY 50 Index (`^NSEI`)** covering **January 4, 2010 to December 30, 2024** (Total observations N = 3,679 trading days).
 
 | Dataset Attribute | Value | Methodological Specification |
 |---|:---:|---|
 | **Primary Ticker** | `^NSEI` | National Stock Exchange of India Large-Cap Benchmark |
-| **Total Observations ($T$)** | $3,679$ | Monotonic daily trading sessions |
-| **In-Sample Training Window** | $1,500$ days | Initial training fold ($2010\text{--}2018$) |
-| **Validation Window** | $500$ days | Model tuning fold ($2019\text{--}2020$) |
-| **Out-of-Sample Test Window** | **$997$ days** | Strictly out-of-sample evaluation ($2021\text{--}2024$) |
-| **Daily Return Skewness** | $-0.428$ | Negative skewness (asymmetric market crash risk) |
-| **Daily Excess Kurtosis** | **$8.941$** | Strong leptokurtosis & heavy tails ($p < 0.0001$) |
-| **Minimum Daily Return** | $-13.90\%$ | March 23, 2020 (COVID-19 market dislocation) |
-| **Maximum Daily Return** | $+8.40\%$ | May 20, 2014 (General Election outcome) |
+| **Total Observations (T)** | 3,679 | Monotonic daily trading sessions |
+| **In-Sample Training Window** | 1,500 days | Initial training fold (2010–2018) |
+| **Validation Window** | 500 days | Model tuning fold (2019–2020) |
+| **Out-of-Sample Test Window** | **997 days** | Strictly out-of-sample evaluation (2021–2024) |
+| **Daily Return Skewness** | -0.428 | Negative skewness (asymmetric market crash risk) |
+| **Daily Excess Kurtosis** | **8.941** | Strong leptokurtosis & heavy tails (p < 0.0001) |
+| **Minimum Daily Return** | -13.90% | March 23, 2020 (COVID-19 market dislocation) |
+| **Maximum Daily Return** | +8.40% | May 20, 2014 (General Election outcome) |
 
 ### Empirical Stylized Facts Visualized
 Below are the historical price dynamics, continuous returns, and autocorrelation of squared returns confirming volatility clustering (ARCH effect):
 
 <p align="center">
-  <img src="results/figures/01_price_series.png" width="48%" />
-  <img src="results/figures/03_acf_squared_returns.png" width="48%" />
+  <img src="results/figures/01_price_series.png" width="48%" alt="Price Series" />
+  <img src="results/figures/03_acf_squared_returns.png" width="48%" alt="ACF Squared Returns" />
 </p>
 
 ---
 
 ## 4. Methodology & Mathematical Formulations
 
-### 4.1 Forward Realized Volatility Target ($RV_{t, t+k}$)
-At forecasting origin $t$, the target forward annualized realized volatility is computed strictly over the future window $[t+1, t+k]$:
+### 4.1 Forward Realized Volatility Target (RV)
+At forecasting origin t, the target forward annualized realized volatility is computed strictly over the future window [t+1, t+k]:
 
 $$RV_{t, t+k} = \sqrt{\sum_{i=1}^k r_{t+i}^2} \times \sqrt{\frac{252}{k}}, \quad k = 5\text{ trading days}$$
 
 ### 4.2 Econometric GARCH(1,1) Formulation
-Under Student's $t$ innovations with $\nu$ degrees of freedom:
+Under Student's t innovations with degrees of freedom:
 
 $$r_t = \mu + \epsilon_t, \quad \epsilon_t = \sigma_t z_t, \quad z_t \sim t(\nu)$$
 $$\sigma_t^2 = \omega + \alpha \epsilon_{t-1}^2 + \beta \sigma_{t-1}^2, \quad \omega > 0, \; \alpha \ge 0, \; \beta \ge 0, \; \alpha + \beta < 1$$
 
-In-sample estimates: $\omega = 2.45 \times 10^{-5}$, $\alpha = 0.0443$, $\beta = 0.9434$, persistence $\lambda = 0.9877$, and implied volatility half-life $\tau \approx 55.9$ trading days. Residual diagnostics confirm specification validity (Ljung-Box on $e_t^2$: $p = 0.8191$, Engle ARCH-LM: $p = 0.8259$).
+In-sample parameters: omega = 2.45e-5, alpha = 0.0443, beta = 0.9434, persistence lambda = 0.9877, and implied volatility half-life = 55.9 trading days. Residual diagnostics confirm specification validity (Ljung-Box on squared residuals: p = 0.8191, Engle ARCH-LM: p = 0.8259).
 
 ### 4.3 Proposed Hybrid GARCH + Machine Learning Model
-The hybrid model extracts the recursive GARCH conditional volatility estimate $\hat{\sigma}_{GARCH, t}$ and incorporates it as an explicit structural feature into an XGBoost regression model:
+The hybrid model extracts the recursive GARCH conditional volatility estimate and incorporates it as an explicit structural feature into an XGBoost regression model:
 
 $$\hat{\sigma}_{t, t+k}^{Hybrid} = f_{XGBoost}\left(\hat{\sigma}_{GARCH, t}, \mathbf{x}_t^{features}\right)$$
 
 ### 4.4 Multi-Horizon Rolling Volatilities
 <p align="center">
-  <img src="results/figures/02_realized_volatility.png" width="85%" />
+  <img src="results/figures/02_realized_volatility.png" width="85%" alt="Realized Volatility Series" />
 </p>
 
 ---
@@ -165,28 +165,28 @@ $$\hat{\sigma}_{t, t+k}^{Hybrid} = f_{XGBoost}\left(\hat{\sigma}_{GARCH, t}, \ma
 
 Evaluated over **997 strictly out-of-sample trading days** (2021–2024) using expanding-window walk-forward validation with monthly (20-day) parameter re-estimation.
 
-### Master Table 1: Statistical Forecast Accuracy ($N = 997$ Test Days)
+### Master Table 1: Statistical Forecast Accuracy (N = 997 Test Days)
 
-| Model | MAE | RMSE | QLIKE | Relative RMSE | DM vs GARCH ($p$-value) | Statistical Rank |
+| Model | MAE | RMSE | QLIKE | Relative RMSE | DM vs GARCH (p-value) | Statistical Rank |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Random Forest** | 0.05151 | **0.08497** | **0.47287** | **0.8390 (-16.1%)** | **$p = 0.0044$ (***)** | **Lowest RMSE & QLIKE** |
-| **XGBoost** | **0.05072** | 0.08594 | 0.48869 | **0.8485 (-15.1%)** | **$p = 0.0025$ (***)** | **Lowest MAE** |
-| **Hybrid GARCH+ML** | 0.05266 | 0.08657 | 0.47664 | **0.8547 (-14.5%)** | **$p = 0.0031$ (***)** | 3rd (Near-Zero Bias) |
-| **Historical Vol (20d)** | 0.06036 | 0.10128 | 0.56519 | 1.0000 (Base) | $p = 0.7253$ (Eqv) | 4th |
+| **Random Forest** | 0.05151 | **0.08497** | **0.47287** | **0.8390 (-16.1%)** | **p = 0.0044 (***)** | **Lowest RMSE & QLIKE** |
+| **XGBoost** | **0.05072** | 0.08594 | 0.48869 | **0.8485 (-15.1%)** | **p = 0.0025 (***)** | **Lowest MAE** |
+| **Hybrid GARCH+ML** | 0.05266 | 0.08657 | 0.47664 | **0.8547 (-14.5%)** | **p = 0.0031 (***)** | 3rd (Near-Zero Bias) |
+| **Historical Vol (20d)** | 0.06036 | 0.10128 | 0.56519 | 1.0000 (Base) | p = 0.7253 (Equivalent) | 4th |
 | **GARCH(1,1)** | 0.06320 | 0.10497 | 0.78001 | 1.0364 (+3.6%) | Benchmark | 5th |
 
-*Significance: \*\*\* $p < 0.01$ under Harvey-Leybourne-Newbold (1997) adjusted Diebold-Mariano tests ($h=5$).*
+*Significance: \*\*\* p < 0.01 under Harvey-Leybourne-Newbold (1997) adjusted Diebold-Mariano tests (h = 5).*
 
 <p align="center">
-  <img src="results/figures/04_forecast_comparison.png" width="85%" />
+  <img src="results/figures/04_forecast_comparison.png" width="85%" alt="Forecast Comparison" />
 </p>
 
 ### Key Statistical Takeaways:
 1. **Loss-Function-Dependent Rankings:** Model ranking strictly depends on the loss function evaluated:
-   - Under quadratic loss ($\text{RMSE}$) and scale-invariant loss ($\text{QLIKE}$), **Random Forest** achieves the lowest error ($0.08497$ and $0.47287$).
-   - Under absolute loss ($\text{MAE}$), **XGBoost** achieves the lowest error ($0.05072$).
-2. **Diebold-Mariano Significance:** All ML models reject the null hypothesis of equal predictive accuracy against GARCH at the **1% significance level** ($p < 0.01$).
-3. **Mincer-Zarnowitz Explanatory Power:** ML models explain $31.1\%$ to $33.5\%$ of variance in forward realized volatility ($R^2$), compared to only $8.2\%$ for standalone GARCH.
+   - Under quadratic loss (RMSE) and scale-invariant loss (QLIKE), **Random Forest** achieves the lowest error (0.08497 and 0.47287).
+   - Under absolute loss (MAE), **XGBoost** achieves the lowest error (0.05072).
+2. **Diebold-Mariano Significance:** All ML models reject the null hypothesis of equal predictive accuracy against GARCH at the **1% significance level** (p < 0.01).
+3. **Mincer-Zarnowitz Explanatory Power:** ML models explain 31.1% to 33.5% of variance in forward realized volatility (R-squared), compared to only 8.2% for standalone GARCH.
 
 ---
 
@@ -194,11 +194,11 @@ Evaluated over **997 strictly out-of-sample trading days** (2021–2024) using e
 
 To evaluate economic utility, forecasts are deployed into a dynamic **15% annualized volatility-targeting strategy** on the NIFTY 50 index:
 
-$$w_t = \min\left(\max\left(\frac{\sigma_{target}}{\hat{\sigma}_t}, 0.0\right), 1.5\right)$$
+$$w_t = \min\left(\max\left(\frac{0.15}{\hat{\sigma}_t}, 0.0\right), 1.5\right)$$
 
-Execution weights are shifted by 1 day ($w_{t-1}$) to ensure zero lookahead bias. Standard institutional transaction friction is deducted ($10\text{ bps}$ fee + $5\text{ bps}$ execution slippage per unit position turnover).
+Execution weights are shifted by 1 day (weight at t-1 applied to session t) to ensure zero lookahead bias. Standard institutional transaction friction is deducted (10 bps fee + 5 bps execution slippage per unit position turnover).
 
-### Master Table 2: Daily Economic Performance & Cost Attribution ($N = 997$ Test Days)
+### Master Table 2: Daily Economic Performance & Cost Attribution (N = 997 Test Days)
 
 | Strategy | Gross CAGR | Net CAGR | Net Sharpe | Net Sortino | Max Drawdown | Annual Turnover | Transaction Cost Drag |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -210,17 +210,17 @@ Execution weights are shifted by 1 day ($w_{t-1}$) to ensure zero lookahead bias
 | **Buy & Hold (Passive 100%)** | 17.96% | 17.96% | 0.601 | 0.467 | -38.44% | 0.00 | 0.00% |
 
 <p align="center">
-  <img src="results/figures/06_forecast_accuracy_vs_economic_utility.png" width="90%" />
+  <img src="results/figures/06_forecast_accuracy_vs_economic_utility.png" width="90%" alt="Forecast vs Economic Utility" />
 </p>
 
 ### The Core Economic Disconnect Explained:
-- **XGBoost** produces the highest gross CAGR ($15.44\%$). However, high forecast responsiveness causes frequent daily weight adjustments (Annual Turnover $= 17.31$).
-- Transaction friction consumes **$2.96\%$ in annual net return**, reducing XGBoost Net Sharpe to **$0.416$**.
-- **GARCH** mean-reverts smoothly, generating an annual turnover of only **$2.47$** with a cost drag of just **$0.43\%$**.
+- **XGBoost** produces the highest gross CAGR (15.44%). However, high forecast responsiveness causes frequent daily weight adjustments (Annual Turnover = 17.31).
+- Transaction friction consumes **2.96% in annual net return**, reducing XGBoost Net Sharpe to **0.416**.
+- **GARCH** mean-reverts smoothly, generating an annual turnover of only **2.47** with a cost drag of just **0.43%**.
 - Consequently, **GARCH achieves the highest Net Sharpe ratio (0.490)** among all primary daily-rebalanced volatility-targeting strategies.
 
 <p align="center">
-  <img src="results/figures/07_equity_curves.png" width="85%" />
+  <img src="results/figures/07_equity_curves.png" width="85%" alt="Cumulative Equity Curves" />
 </p>
 
 ---
@@ -244,31 +244,31 @@ $$\text{Raw Market Data} \xrightarrow[\text{Econometric / ML}]{\text{Forecasting
 | **Random Forest** | **EMA Smoothed (10d)** | **4.22** | **13.37%** | **13.20%** | **0.436** | **0.512** | **-0.17%** |
 
 <p align="center">
-  <img src="results/figures/09_rebalancing_frequency_tradeoff.png" width="85%" />
+  <img src="results/figures/09_rebalancing_frequency_tradeoff.png" width="85%" alt="Rebalancing Tradeoff" />
 </p>
 
 ### Rebalancing Insights:
-- Moving from daily to **weekly (5-day)** rebalancing reduces XGBoost turnover from $17.31$ to $7.11$, cutting cost drag by more than half and lifting its Net Sharpe ratio to **$0.530$** (surpassing daily GARCH).
-- **Biweekly (10-day)** rebalancing cuts turnover to $4.66$, achieving a Net Sharpe of **$0.558$** and net CAGR of **$17.00\%$**.
+- Moving from daily to **weekly (5-day)** rebalancing reduces XGBoost turnover from 17.31 to 7.11, cutting cost drag by more than half and lifting its Net Sharpe ratio to **0.530** (surpassing daily GARCH).
+- **Biweekly (10-day)** rebalancing cuts turnover to 4.66, achieving a Net Sharpe of **0.558** and net CAGR of **17.00%**.
 
 ---
 
 ## 8. Sensitivity Analyses & Exploratory Extensions
 
-### 8.1 Transaction Cost Grid ($0\text{ to }50\text{ bps}$) & Break-Even Crossover
+### 8.1 Transaction Cost Grid (0 to 50 bps) & Break-Even Crossover
 <p align="center">
-  <img src="results/figures/08_transaction_cost_sensitivity.png" width="48%" />
-  <img src="results/figures/10_turnover_vs_net_sharpe.png" width="48%" />
+  <img src="results/figures/08_transaction_cost_sensitivity.png" width="48%" alt="Cost Sensitivity" />
+  <img src="results/figures/10_turnover_vs_net_sharpe.png" width="48%" alt="Turnover vs Sharpe" />
 </p>
 
-- **Friction-Free Baseline (0 bps fee):** XGBoost Net Sharpe ($0.486$) is virtually tied with GARCH ($0.500$).
-- **Estimated Break-Even Transaction Cost:** Under daily rebalancing, XGBoost's net advantage over GARCH disappears at execution frictions exceeding $\approx \mathbf{0\text{ to }2\text{ bps}}$ of one-way fee ($5\text{ to }7\text{ bps}$ total friction).
-- **Punitive Friction (50 bps):** GARCH remains resilient (Net Sharpe $0.451$), whereas XGBoost collapses to Net Sharpe $0.134$.
+- **Friction-Free Baseline (0 bps fee + 5 bps slippage):** XGBoost Net Sharpe (0.486) is virtually tied with GARCH (0.500).
+- **Estimated Break-Even Transaction Cost:** Under daily rebalancing, XGBoost's net advantage over GARCH disappears at execution frictions exceeding approximately **0 to 2 bps** of one-way fee (5 to 7 bps total friction).
+- **Punitive Friction (50 bps):** GARCH remains resilient (Net Sharpe 0.451), whereas XGBoost collapses to Net Sharpe 0.134.
 
 ### 8.2 Exploratory Extension: Volatility Forecast Smoothing (EMA Filtering)
 Applying an Exponential Moving Average (EMA) filter directly to Random Forest volatility forecasts:
-- A **10-day EMA filter** cuts annual turnover by **$67\%$** (from $12.72$ down to $4.22$).
-- Cost drag is reduced from $-2.14\%$ to $-0.17\%$, increasing Net Sharpe from $0.371$ to **$0.436$**.
+- A **10-day EMA filter** cuts annual turnover by **67%** (from 12.72 down to 4.22).
+- Cost drag is reduced from -2.14% to -0.17%, increasing Net Sharpe from 0.371 to **0.436**.
 
 ---
 
