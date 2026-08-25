@@ -44,12 +44,13 @@ finance_meta/
 │   └── final_experiment.yaml           # Frozen production experiment configuration
 │
 ├── data/
-│   ├── README.md                       # Data documentation and lineage specification
 │   ├── raw/nifty50_daily_raw.csv       # Immutable raw NIFTY 50 OHLCV data (3,679 rows)
 │   └── processed/nifty50_daily_processed.csv # Cleaned market series with returns & indicators
 │
 ├── docs/
 │   ├── methodology.md                  # Comprehensive mathematical specification
+│   ├── data_documentation.md           # Dataset schema, lineage, and validation specification
+│   ├── results_guide.md                # Results directory guide and artifact lineage
 │   ├── reproducibility.md              # Exact step-by-step replication protocol
 │   ├── limitations.md                  # Methodological boundaries and assumptions
 │   ├── viva_questions.md               # 42 Comprehensive viva defense questions & answers
@@ -76,7 +77,6 @@ finance_meta/
 │   ├── 01_data_collection.ipynb to 12_robustness.ipynb
 │
 ├── results/
-│   ├── README.md                       # Results documentation & index
 │   ├── audit_report.md                 # 21-Point methodological quality audit report
 │   ├── figures/                        # 10 Publication figures (PNG, 300 DPI)
 │   ├── forecasts/                      # Out-of-sample walk-forward predictions (997 test days)
