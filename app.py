@@ -344,12 +344,12 @@ def main():
             if not cost_df.empty:
                 fig_cost = px.line(
                     cost_df,
-                    x="Fee_bps",
-                    y="Sharpe_Net",
-                    color="Strategy",
+                    x="Cost_bps",
+                    y="Net_Sharpe",
+                    color="Model",
                     markers=True,
                     title="Net Sharpe Response across Transaction Cost Grid",
-                    labels={"Fee_bps": "Brokerage Fee (bps)", "Sharpe_Net": "Net Sharpe Ratio"}
+                    labels={"Cost_bps": "Brokerage Fee (bps)", "Net_Sharpe": "Net Sharpe Ratio"}
                 )
                 fig_cost.update_layout(template="plotly_white")
                 st.plotly_chart(fig_cost, use_container_width=True)
@@ -359,12 +359,12 @@ def main():
             if not rebal_df.empty:
                 fig_rebal = px.bar(
                     rebal_df,
-                    x="Cadence",
+                    x="Rebalancing",
                     y="Net_Sharpe",
                     color="Model",
                     barmode="group",
                     title="Net Sharpe by Rebalancing Cadence",
-                    labels={"Cadence": "Rebalancing Cadence", "Net_Sharpe": "Net Sharpe Ratio"}
+                    labels={"Rebalancing": "Rebalancing Cadence", "Net_Sharpe": "Net Sharpe Ratio"}
                 )
                 fig_rebal.update_layout(template="plotly_white")
                 st.plotly_chart(fig_rebal, use_container_width=True)
