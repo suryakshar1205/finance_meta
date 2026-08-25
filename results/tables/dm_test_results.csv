@@ -1,9 +1,0 @@
-Benchmark,Competitor,Loss,DM_Statistic,p_value,Significance,Conclusion
-GARCH,Historical Volatility,MSE (Squared Error),0.3514174094758631,0.7253495489351391,No statistically significant difference (p >= 0.10),Equivalent
-GARCH,Random Forest,MSE (Squared Error),2.850665928619488,0.004452820801052804,Statistically significant at 1% level,Random Forest superior
-GARCH,XGBoost,MSE (Squared Error),3.0348259989197413,0.002469239232646858,Statistically significant at 1% level,XGBoost superior
-GARCH,Hybrid GARCH+ML,MSE (Squared Error),2.96209279796815,0.0031281190638368095,Statistically significant at 1% level,Hybrid GARCH+ML superior
-Historical Volatility,GARCH,MSE (Squared Error),-0.3514174094758631,0.7253495489351391,No statistically significant difference (p >= 0.10),Equivalent
-Historical Volatility,Random Forest,MSE (Squared Error),1.8435615301774615,0.06554399510135611,Statistically significant at 10% level,Equivalent
-Historical Volatility,XGBoost,MSE (Squared Error),1.6974461468668451,0.08992474168136844,Statistically significant at 10% level,Equivalent
-Historical Volatility,Hybrid GARCH+ML,MSE (Squared Error),1.6363211799451174,0.10208830846442751,No statistically significant difference (p >= 0.10),Equivalent

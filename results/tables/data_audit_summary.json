@@ -1,9 +1,0 @@
-{
-  "initial_rows": 3679,
-  "duplicate_rows_removed": 0,
-  "missing_values_imputed": 0,
-  "invalid_price_anomalies": 0,
-  "calendar_gaps_detected": 232,
-  "final_rows": 3679,
-  "date_range": "2010-01-04 to 2024-12-30"
-}

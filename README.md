@@ -33,7 +33,9 @@ An empirical quantitative finance research framework evaluating traditional econ
 ```text
 finance_meta/
 ├── README.md                           # Master research overview & documentation
+├── LICENSE                             # MIT open-source license
 ├── requirements.txt                    # Pinned package dependencies
+├── .gitignore                          # Git ignore configuration
 ├── run_all_experiments.py              # Master reproducible end-to-end execution runner
 ├── build_notebooks.py                  # Jupyter notebook generation utility
 │
@@ -42,8 +44,16 @@ finance_meta/
 │   └── final_experiment.yaml           # Frozen production experiment configuration
 │
 ├── data/
+│   ├── README.md                       # Data documentation and lineage specification
 │   ├── raw/nifty50_daily_raw.csv       # Immutable raw NIFTY 50 OHLCV data (3,679 rows)
 │   └── processed/nifty50_daily_processed.csv # Cleaned market series with returns & indicators
+│
+├── docs/
+│   ├── methodology.md                  # Comprehensive mathematical specification
+│   ├── reproducibility.md              # Exact step-by-step replication protocol
+│   ├── limitations.md                  # Methodological boundaries and assumptions
+│   ├── viva_questions.md               # 42 Comprehensive viva defense questions & answers
+│   └── submission_checklist.md         # Submission verification checklist
 │
 ├── src/
 │   ├── __init__.py                     # Package init
@@ -58,34 +68,33 @@ finance_meta/
 │   ├── evaluation.py                   # MAE, RMSE, QLIKE, Diebold-Mariano matrix & MZ regressions
 │   ├── backtesting.py                  # Volatility targeting, cost grid & rebalance frequency
 │   ├── visualization.py                # Publication-grade Matplotlib visualizer (Agg backend)
+│   ├── refinement_experiments.py       # Sensitivity & refinement execution runner
 │   ├── final_polish_analysis.py        # Final sensitivity & claim audit runner
 │   └── validate_results.py             # Programmatic result consistency auditor
 │
-├── notebooks/                          # 12 Modular interactive Jupyter notebooks
+├── notebooks/                          # 12 Modular interactive Jupyter notebooks (01 to 12)
 │   ├── 01_data_collection.ipynb to 12_robustness.ipynb
 │
 ├── results/
+│   ├── README.md                       # Results documentation & index
 │   ├── audit_report.md                 # 21-Point methodological quality audit report
-│   ├── baseline/                       # Frozen baseline artifacts & forecasts
-│   ├── final_primary/                  # Frozen primary results before final polish
-│   ├── final/                          # Frozen publication tables & final findings
-│   │   ├── final_forecast_metrics.csv
-│   │   ├── final_dm_tests.csv
-│   │   ├── final_dm_comparison_matrix.csv
-│   │   ├── final_portfolio_metrics.csv
-│   │   ├── final_transaction_cost_sensitivity.csv
-│   │   ├── final_turnover_analysis.csv
-│   │   ├── rebalancing_frequency_sensitivity.csv
-│   │   ├── final_calibration_analysis.csv
-│   │   ├── final_model_parameters.csv
-│   │   ├── final_regime_metrics.csv
-│   │   ├── final_smoothed_ml_extension.csv
-│   │   ├── claim_audit.csv
-│   │   ├── final_configuration.yaml
-│   │   └── FINAL_RESEARCH_STATUS.md
-│   ├── figures/                        # 13 Publication figures (PNG, 300 DPI)
-│   ├── tables/                         # CSV and JSON result summaries
-│   └── forecasts/                      # Out-of-sample predictions (997 test days)
+│   ├── figures/                        # 10 Publication figures (PNG, 300 DPI)
+│   ├── forecasts/                      # Out-of-sample walk-forward predictions (997 test days)
+│   └── final/                          # Centralized final publication tables & findings
+│       ├── final_forecast_metrics.csv
+│       ├── final_dm_tests.csv
+│       ├── final_dm_comparison_matrix.csv
+│       ├── final_portfolio_metrics.csv
+│       ├── final_transaction_cost_sensitivity.csv
+│       ├── final_turnover_analysis.csv
+│       ├── rebalancing_frequency_sensitivity.csv
+│       ├── final_calibration_analysis.csv
+│       ├── final_model_parameters.csv
+│       ├── final_regime_metrics.csv
+│       ├── final_smoothed_ml_extension.csv
+│       ├── claim_audit.csv
+│       ├── final_configuration.yaml
+│       └── FINAL_RESEARCH_STATUS.md
 │
 ├── paper/
 │   └── paper.md                        # Academic research paper manuscript (18 sections)
