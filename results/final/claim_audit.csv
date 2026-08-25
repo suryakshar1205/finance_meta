@@ -1,0 +1,13 @@
+claim,source_file,source_table,reported_value,actual_value,status
+Random Forest achieves out-of-sample RMSE of 0.08497 (16.1% improvement vs Hist Vol),results/final/final_forecast_metrics.csv,final_forecast_metrics,0.08497 (16.1% reduction),0.08497 (0.8390 relative RMSE),VERIFIED
+XGBoost achieves lowest MAE of 0.05072,results/final/final_forecast_metrics.csv,final_forecast_metrics,0.05072,0.05072,VERIFIED
+Random Forest achieves lowest QLIKE of 0.47287,results/final/final_forecast_metrics.csv,final_forecast_metrics,0.47287,0.47287,VERIFIED
+"GARCH(1,1) achieves RMSE of 0.10497 and QLIKE of 0.78001",results/final/final_forecast_metrics.csv,final_forecast_metrics,0.10497 / 0.78001,0.10497 / 0.78001,VERIFIED
+Diebold-Mariano test rejects equal accuracy between RF and GARCH with p = 0.0044,results/final/final_dm_tests.csv,final_dm_tests,p = 0.0044 (DM stat = 2.851),p = 0.0044 (DM stat = 2.85067),VERIFIED
+Diebold-Mariano test rejects equal accuracy between XGBoost and GARCH with p = 0.0025,results/final/final_dm_tests.csv,final_dm_tests,p = 0.0025 (DM stat = 3.035),p = 0.0025 (DM stat = 3.03483),VERIFIED
+GARCH produces lowest daily volatility-targeting turnover of 2.47 and cost drag of -0.43%,results/final/final_portfolio_metrics.csv,final_portfolio_metrics,"Turnover: 2.47, Cost Drag: -0.43%","Turnover: 2.4699, Net CAGR: 14.85%, Gross CAGR: 15.28%",VERIFIED
+GARCH achieves highest daily Net Sharpe of 0.490 among volatility-targeting strategies,results/final/final_portfolio_metrics.csv,final_portfolio_metrics,0.490,0.49025,VERIFIED
+"XGBoost daily turnover of 17.31 incurs cost drag of -2.96%, lowering Net Sharpe to 0.416",results/final/final_portfolio_metrics.csv,final_portfolio_metrics,"Turnover: 17.31, Net Sharpe: 0.416, Cost Drag: -2.96%","Turnover: 17.312, Net Sharpe: 0.41566, Net CAGR: 12.48%, Gross: 15.44%",VERIFIED
+Weekly rebalancing reduces XGBoost turnover to 7.11 and increases Net Sharpe to 0.530,results/final/rebalancing_frequency_sensitivity.csv,rebalancing_frequency_sensitivity,"Turnover: 7.11, Net Sharpe: 0.530, Net CAGR: 16.07%","Turnover: 7.1088, Net Sharpe: 0.52985, Net CAGR: 16.072%",VERIFIED
+Biweekly rebalancing reduces XGBoost turnover to 4.66 and increases Net Sharpe to 0.558,results/final/rebalancing_frequency_sensitivity.csv,rebalancing_frequency_sensitivity,"Turnover: 4.66, Net Sharpe: 0.558, Net CAGR: 17.00%","Turnover: 4.6561, Net Sharpe: 0.55799, Net CAGR: 17.002%",VERIFIED
+10-day EMA smoothing on Random Forest reduces turnover from 12.72 to 4.22 and raises Net Sharpe from 0.371 to 0.436,results/final/final_smoothed_ml_extension.csv,final_smoothed_ml_extension,"Turnover: 4.22, Net Sharpe: 0.436, Net CAGR: 13.20%","Turnover: 4.2240, Net Sharpe: 0.43616, Net CAGR: 13.196%",VERIFIED

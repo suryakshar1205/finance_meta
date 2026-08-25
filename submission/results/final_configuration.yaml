@@ -1,0 +1,95 @@
+# ==============================================================================
+# Frozen Final Experiment Configuration
+# Project: "A Comparative and Hybrid Framework for Financial Volatility Forecasting:
+#           Statistical Accuracy versus Economic Utility"
+# ==============================================================================
+
+project:
+  name: "Comparative and Hybrid Financial Volatility Forecasting"
+  version: "2.0.0-final"
+  random_seed: 42
+  title: "A Comparative and Hybrid Framework for Financial Volatility Forecasting: Statistical Accuracy versus Economic Utility"
+
+# --- Data Parameters ---
+data:
+  ticker: "^NSEI"               # Primary market: NIFTY 50 Index (NSE India)
+  name: "NIFTY 50"
+  start_date: "2010-01-01"
+  end_date: "2024-12-31"
+  raw_file: "data/raw/nifty50_daily_raw.csv"
+  processed_file: "data/processed/nifty50_daily_processed.csv"
+
+# --- Feature & Target Parameters ---
+features:
+  annualization_factor: 252
+  volatility_windows: [5, 10, 20, 30, 60]
+  return_lags: [1, 2, 3, 5, 10, 20]
+  target_horizon: 5             # Primary forecast horizon (k=5 trading days)
+  robustness_horizons: [1, 5, 10, 20]
+
+# --- Chronological Validation Splitting ---
+splits:
+  train_start: "2010-01-01"
+  train_end: "2018-12-31"
+  val_start: "2019-01-01"
+  val_end: "2020-12-31"
+  test_start: "2021-01-01"
+  test_end: "2024-12-31"
+
+# --- Walk-Forward Validation Engine ---
+walk_forward:
+  scheme: "expanding"
+  initial_train_window: 1500    # Initial days
+  step_size: 1                  # Daily forecast step
+  refit_interval: 20            # Re-estimate parameters every 20 days (monthly)
+
+# --- GARCH Econometric Specification ---
+garch:
+  p: 1
+  q: 1
+  mean: "Constant"
+  dist: "StudentsT"
+  rescale: true
+
+# --- Machine Learning Hyperparameters ---
+ml_models:
+  random_forest:
+    n_estimators: 200
+    max_depth: 6
+    min_samples_split: 5
+    min_samples_leaf: 2
+    random_state: 42
+    n_jobs: -1
+  xgboost:
+    n_estimators: 200
+    max_depth: 4
+    learning_rate: 0.03
+    subsample: 0.8
+    colsample_bytree: 0.8
+    random_state: 42
+    n_jobs: -1
+
+# --- Proposed Hybrid Framework ---
+hybrid:
+  base_learner: "xgboost"
+  include_garch_feature: true
+  residual_learning: false
+
+# --- Economic Risk Management Backtesting ---
+portfolio:
+  target_volatility: 0.15       # 15% annualized target volatility
+  max_leverage: 1.5
+  min_leverage: 0.0
+  risk_free_rate: 0.05          # 5.0% annual risk-free rate
+  transaction_cost_bps: 10.0    # 10 bps base fee
+  slippage_bps: 5.0             # 5 bps execution slippage
+  cost_sensitivity_grid: [0.0, 5.0, 10.0, 15.0, 20.0, 30.0, 50.0]
+  rebalance_frequencies: ["Daily", "Weekly (5d)", "Biweekly (10d)"]
+  ema_smoothing_spans: [1, 3, 5, 10]
+
+# --- Frozen Artifact Destinations ---
+results:
+  final_dir: "results/final"
+  tables_dir: "results/tables"
+  figures_dir: "results/figures"
+  forecasts_dir: "results/forecasts"

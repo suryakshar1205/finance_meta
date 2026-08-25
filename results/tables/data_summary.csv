@@ -1,0 +1,4 @@
+Dataset,Ticker,Start_Date,End_Date,Total_Observations,Missing_Values,Duplicates_Removed,Sampling_Frequency
+Raw Historical Market Data,^NSEI (NIFTY 50),2010-01-04,2024-12-30,3679,0,0,Daily (Trading Days)
+Cleaned Processed Time Series,^NSEI (NIFTY 50),2010-01-04,2024-12-30,3679,0,0,Daily (Trading Days)
+Walk-Forward Out-of-Sample Test Window,^NSEI (NIFTY 50),2019-12-20,2024-12-20,997,0,0,Daily (Expanding Walk-Forward)
