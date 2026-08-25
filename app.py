@@ -1,11 +1,14 @@
 """
 Quantitative Volatility Forecasting & Economic Utility Dashboard
 ================================================================
-An interactive institutional-grade research dashboard exploring:
-  1. Live Dynamic Volatility Targeting backtesting with customizable transaction costs & target volatility
-  2. Statistical forecast accuracy (RMSE, MAE, QLIKE, Diebold-Mariano tests)
-  3. Sensitivity & Rebalancing trade-offs (Cost grid curve & Rebalancing frequency bar chart)
-  4. NIFTY 50 Stylized Facts & Historical market dynamics
+An institutional-grade interactive research dashboard with advanced UX:
+  1. 🎯 1-Click Scenario Presets (Baseline, Zero-Friction, Optimal Cadence, High Friction)
+  2. 🎛️ Interactive Strategy Filter (Toggle models on/off)
+  3. 📉 Cumulative Net Equity & Underwater Drawdown Charts
+  4. 📅 Crisis Zoom Date Filters (Full Test, 2022 Selloff, 2023-24 Rally)
+  5. 🥇 Ranked Strategy Performance Table with Badges
+  6. 💾 1-Click CSV Data Export
+  7. 📖 Collapsible Methodology and Formula Drawers
 """
 
 import os
@@ -19,25 +22,34 @@ from plotly.subplots import make_subplots
 
 # Page configuration
 st.set_page_config(
-    page_title="Financial Volatility Forecasting | Quantitative Research",
+    page_title="Financial Volatility Forecasting | Quantitative Research Dashboard",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for institutional aesthetics
+# Custom Styling
 st.markdown("""
 <style>
     .main-header {
         font-size: 2.1rem;
         font-weight: 700;
-        color: #1E293B;
+        color: #0F172A;
         margin-bottom: 0.2rem;
     }
     .sub-header {
         font-size: 1.05rem;
-        color: #64748B;
-        margin-bottom: 1.5rem;
+        color: #475569;
+        margin-bottom: 1.2rem;
+    }
+    .scenario-banner {
+        background-color: #F1F5F9;
+        border-left: 4px solid #0EA5E9;
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+        color: #1E293B;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -80,13 +92,11 @@ def load_all_data():
     return fdf, mdf, metrics_df, dm_matrix_df, port_df, cost_df, rebal_df
 
 
-def simulate_volatility_targeting(fdf, target_vol=0.15, max_leverage=1.5, fee_bps=10.0, slippage_bps=5.0, cadence=1, ema_span=1):
-    """
-    Live simulator for volatility targeting across all models with interactive parameters.
-    """
+def simulate_volatility_targeting(fdf, target_vol=0.15, max_leverage=1.5, total_cost_bps=15.0, cadence=1, ema_span=1):
+    """Live simulator for volatility targeting across all models with interactive parameters."""
     df = fdf.copy().sort_values("Date").reset_index(drop=True)
     model_cols = [c for c in ["Historical Volatility", "GARCH", "Random Forest", "XGBoost", "Hybrid GARCH+ML"] if c in df.columns]
-    total_friction = (fee_bps + slippage_bps) / 10000.0
+    total_friction = total_cost_bps / 10000.0
 
     results = {}
     n_days = len(df)
@@ -97,9 +107,11 @@ def simulate_volatility_targeting(fdf, target_vol=0.15, max_leverage=1.5, fee_bp
     bh_cagr = (bh_cum[-1] ** (252.0 / n_days)) - 1.0
     bh_vol = np.std(bh_ret) * np.sqrt(252.0)
     bh_sharpe = bh_cagr / (bh_vol + 1e-8)
-    bh_dd = (bh_cum - np.maximum.accumulate(bh_cum)) / np.maximum.accumulate(bh_cum)
+    bh_running_max = np.maximum.accumulate(bh_cum)
+    bh_dd = (bh_cum - bh_running_max) / bh_running_max
     results["Buy & Hold"] = {
         "cum_equity": bh_cum,
+        "drawdown": bh_dd,
         "daily_returns": bh_ret,
         "cagr_gross": bh_cagr,
         "cagr_net": bh_cagr,
@@ -113,7 +125,7 @@ def simulate_volatility_targeting(fdf, target_vol=0.15, max_leverage=1.5, fee_bp
     for m in model_cols:
         raw_forecast = df[m].values.copy()
         
-        # Apply EMA smoothing if requested
+        # Apply EMA smoothing
         if ema_span > 1:
             raw_forecast = pd.Series(raw_forecast).ewm(span=ema_span, adjust=False).mean().values
             
@@ -155,6 +167,7 @@ def simulate_volatility_targeting(fdf, target_vol=0.15, max_leverage=1.5, fee_bp
 
         results[m] = {
             "cum_equity": cum_net,
+            "drawdown": drawdowns,
             "daily_returns": net_ret,
             "cagr_gross": cagr_gross,
             "cagr_net": cagr_net,
@@ -172,41 +185,73 @@ def main():
     fdf, mdf, metrics_df, dm_matrix_df, port_df, cost_df, rebal_df = load_all_data()
 
     st.markdown('<div class="main-header">Quantitative Volatility Forecasting & Economic Utility</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">Evaluating Statistical Precision vs. Portfolio Implementation Friction on the NIFTY 50 Index (2010–2024, N = 3,679)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Institutional Research Suite: Statistical Precision vs. Market Friction on the NIFTY 50 Index (2010–2024, N = 3,679)</div>', unsafe_allow_html=True)
 
-    # Sidebar parameters
-    st.sidebar.header("🕹️ Live Simulation Parameters")
+    # 1. SIDEBAR SCENARIO PRESETS (Enhancement 1)
+    st.sidebar.header("🎯 Scenario Presets")
+    scenario = st.sidebar.selectbox(
+        "Select Quick Scenario",
+        options=[
+            "📌 Original Paper Baseline (Daily, 15 bps)",
+            "🏆 Optimal Rebalancing (Biweekly, 15 bps)",
+            "⚡ Zero-Friction Theoretical (Daily, 0 bps)",
+            "⚠️ Heavy Friction Stress Test (Daily, 30 bps)",
+            "⚙️ Custom Parameters"
+        ],
+        index=0
+    )
+
+    # Map scenario to default settings
+    if "Original Paper Baseline" in scenario:
+        def_vol = 15
+        def_cost = 15
+        def_cadence = "Daily (1-day)"
+        def_ema = 1
+    elif "Optimal Rebalancing" in scenario:
+        def_vol = 15
+        def_cost = 15
+        def_cadence = "Biweekly (10-day)"
+        def_ema = 1
+    elif "Zero-Friction" in scenario:
+        def_vol = 15
+        def_cost = 0
+        def_cadence = "Daily (1-day)"
+        def_ema = 1
+    elif "Heavy Friction" in scenario:
+        def_vol = 15
+        def_cost = 30
+        def_cadence = "Daily (1-day)"
+        def_ema = 1
+    else:
+        def_vol = 15
+        def_cost = 15
+        def_cadence = "Daily (1-day)"
+        def_ema = 1
+
+    st.sidebar.markdown("---")
+    st.sidebar.header("🕹️ Fine-Tune Controls")
+
+    target_vol_input = st.sidebar.slider("Target Annualized Volatility (%)", min_value=5, max_value=25, value=def_vol, step=1) / 100.0
+    total_cost_input = st.sidebar.slider("Total Transaction Friction (bps)", min_value=0, max_value=50, value=def_cost, step=1, help="Combined fee + slippage in basis points (1 bps = 0.01%)")
     
-    target_vol_input = st.sidebar.slider("Target Annualized Volatility (%)", min_value=5.0, max_value=25.0, value=15.0, step=1.0) / 100.0
-    fee_bps_input = st.sidebar.slider("Brokerage Fee (bps)", min_value=0.0, max_value=30.0, value=10.0, step=1.0)
-    slippage_bps_input = st.sidebar.slider("Execution Slippage (bps)", min_value=0.0, max_value=20.0, value=5.0, step=1.0)
-    cadence_choice = st.sidebar.selectbox("Rebalancing Cadence", options=["Daily (1-day)", "Weekly (5-day)", "Biweekly (10-day)"])
+    cadence_options = ["Daily (1-day)", "Weekly (5-day)", "Biweekly (10-day)"]
+    cadence_choice = st.sidebar.selectbox("Rebalancing Cadence", options=cadence_options, index=cadence_options.index(def_cadence))
     cadence_map = {"Daily (1-day)": 1, "Weekly (5-day)": 5, "Biweekly (10-day)": 10}
     cadence_days = cadence_map[cadence_choice]
 
-    ema_smoothing = st.sidebar.slider("Forecast Smoothing (EMA Days)", min_value=1, max_value=10, value=1, help="1 = Raw Forecasts (No Smoothing)")
+    ema_smoothing = st.sidebar.slider("Forecast Smoothing (EMA Days)", min_value=1, max_value=10, value=def_ema, help="Exponential moving average filter. 1d = Raw Forecast")
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("### 📊 Research Quick Facts")
+    st.sidebar.markdown("### 📊 Research Highlights")
     st.sidebar.info("""
-    - **Primary Market:** NIFTY 50 (`^NSEI`)
-    - **Test Window:** 997 Days (2021–2024)
+    - **Primary Benchmark:** NIFTY 50 (`^NSEI`)
+    - **Out-of-Sample Window:** 997 Days (2021–2024)
     - **Best Statistical Model:** Random Forest (RMSE: 0.0850)
     - **Best Daily Net Sharpe:** GARCH(1,1) (0.490)
     - **Optimal Cadence:** Biweekly XGBoost (Net Sharpe: 0.558)
     """)
 
-    # Live simulation
-    sim_results = simulate_volatility_targeting(
-        fdf,
-        target_vol=target_vol_input,
-        fee_bps=fee_bps_input,
-        slippage_bps=slippage_bps_input,
-        cadence=cadence_days,
-        ema_span=ema_smoothing
-    )
-
-    # Navigation Tabs (Clear 4 Visual Tabs)
+    # 4 TABS
     tab1, tab2, tab3, tab4 = st.tabs([
         "🚀 Live Economic Simulation",
         "🎯 Statistical Forecast Accuracy",
@@ -214,10 +259,37 @@ def main():
         "🔍 Econometric Stylized Facts"
     ])
 
-    # TAB 1: LIVE SIMULATION
+    # =========================================================================
+    # TAB 1: LIVE ECONOMIC SIMULATION
+    # =========================================================================
     with tab1:
         st.subheader("Dynamic Volatility-Targeting Backtest (Live Recalculation)")
-        st.markdown(f"Evaluating portfolio performance targeting **{target_vol_input*100:.0f}% volatility** under **{fee_bps_input + slippage_bps_input:.0f} bps total friction** with **{cadence_choice}** rebalancing.")
+        st.markdown(f'<div class="scenario-banner">Active Scenario: <b>{scenario}</b> | Target Vol: <b>{target_vol_input*100:.0f}%</b> | Friction: <b>{total_cost_input} bps</b> | Cadence: <b>{cadence_choice}</b> | EMA: <b>{ema_smoothing}d</b></div>', unsafe_allow_html=True)
+
+        # Crisis Zoom Date Filter (Enhancement 4)
+        c_filter1, c_filter2 = st.columns([3, 1])
+        with c_filter1:
+            date_filter = st.radio(
+                "📅 Crisis Zoom Window:",
+                options=["Full Out-of-Sample (2021–2024)", "2022 Market Correction / Inflation Selloff", "2023–2024 Market Rally"],
+                horizontal=True
+            )
+
+        # Slice data if crisis zoom is selected
+        filtered_fdf = fdf.copy()
+        if "2022 Market Correction" in date_filter:
+            filtered_fdf = filtered_fdf[(filtered_fdf["Date"] >= "2022-01-01") & (filtered_fdf["Date"] <= "2022-12-31")].reset_index(drop=True)
+        elif "2023–2024" in date_filter:
+            filtered_fdf = filtered_fdf[filtered_fdf["Date"] >= "2023-01-01"].reset_index(drop=True)
+
+        # Run live simulation
+        sim_results = simulate_volatility_targeting(
+            filtered_fdf,
+            target_vol=target_vol_input,
+            total_cost_bps=total_cost_input,
+            cadence=cadence_days,
+            ema_span=ema_smoothing
+        )
 
         # Metric cards
         col1, col2, col3, col4 = st.columns(4)
@@ -234,8 +306,14 @@ def main():
             bh_net = sim_results["Buy & Hold"]["sharpe_net"]
             st.metric("Buy & Hold Sharpe", f"{bh_net:.3f}", delta="Passive 100%")
 
-        # Interactive Cumulative Equity Chart
-        fig_equity = go.Figure()
+        # Interactive Model Filter (Enhancement 2)
+        all_models = list(sim_results.keys())
+        selected_models = st.multiselect("🎛️ Filter Displayed Strategies:", options=all_models, default=all_models)
+
+        # Drawdown Subplot Toggle (Enhancement 3)
+        show_drawdowns = st.checkbox("📉 Show Underwater Drawdown Curves below Equity Chart", value=True)
+
+        # Plot Cumulative Equity and Drawdowns
         colors = {
             "GARCH": "#2563EB",
             "XGBoost": "#DC2626",
@@ -244,40 +322,92 @@ def main():
             "Historical Volatility": "#D97706",
             "Buy & Hold": "#64748B"
         }
-        for name, data in sim_results.items():
-            fig_equity.add_trace(go.Scatter(
-                x=data["dates"],
-                y=data["cum_equity"],
-                mode="lines",
-                name=name,
-                line=dict(color=colors.get(name, "#333"), width=2.2 if name in ["GARCH", "XGBoost"] else 1.5)
-            ))
-        fig_equity.update_layout(
-            title=f"Cumulative Net Equity Curves (Out-of-Sample 2021–2024, {cadence_choice} Rebalancing)",
-            xaxis_title="Date",
-            yaxis_title="Portfolio Wealth ($1.00 Base)",
-            template="plotly_white",
-            hovermode="x unified",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-        st.plotly_chart(fig_equity, use_container_width=True)
 
-        # Performance table
-        st.markdown("### 📋 Dynamic Strategy Performance Comparison")
+        if show_drawdowns:
+            fig_perf = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.07, row_heights=[0.7, 0.3], subplot_titles=["Cumulative Net Wealth ($1.00 Base)", "Underwater Drawdown (%)"])
+            for m in selected_models:
+                data = sim_results[m]
+                fig_perf.add_trace(go.Scatter(
+                    x=data["dates"], y=data["cum_equity"], mode="lines", name=m,
+                    line=dict(color=colors.get(m, "#333"), width=2.2 if m in ["GARCH", "XGBoost"] else 1.5)
+                ), row=1, col=1)
+                fig_perf.add_trace(go.Scatter(
+                    x=data["dates"], y=data["drawdown"] * 100.0, mode="lines", name=m, showlegend=False,
+                    line=dict(color=colors.get(m, "#333"), width=1.3)
+                ), row=2, col=1)
+            fig_perf.update_layout(template="plotly_white", hovermode="x unified", height=550)
+            st.plotly_chart(fig_perf, use_container_width=True)
+        else:
+            fig_eq = go.Figure()
+            for m in selected_models:
+                data = sim_results[m]
+                fig_eq.add_trace(go.Scatter(
+                    x=data["dates"], y=data["cum_equity"], mode="lines", name=m,
+                    line=dict(color=colors.get(m, "#333"), width=2.2 if m in ["GARCH", "XGBoost"] else 1.5)
+                ))
+            fig_eq.update_layout(
+                title=f"Cumulative Net Equity Curves ({cadence_choice} Rebalancing)",
+                xaxis_title="Date", yaxis_title="Portfolio Wealth ($1.00 Base)",
+                template="plotly_white", hovermode="x unified", height=430
+            )
+            st.plotly_chart(fig_eq, use_container_width=True)
+
+        # Ranked Strategy Performance Table with Badges (Enhancement 5)
+        st.markdown("### 📋 Ranked Strategy Performance Comparison")
         table_rows = []
         for name, data in sim_results.items():
             table_rows.append({
                 "Strategy": name,
-                "Net Sharpe": f"{data['sharpe_net']:.3f}",
-                "Net CAGR (%)": f"{data['cagr_net']*100:.2f}%",
-                "Gross CAGR (%)": f"{data['cagr_gross']*100:.2f}%",
-                "Annual Turnover": f"{data['turnover']:.2f}",
-                "Cost Drag (%)": f"{data['cost_drag']*100:.2f}%",
-                "Max Drawdown (%)": f"{data['max_dd']*100:.2f}%"
+                "Net Sharpe": data["sharpe_net"],
+                "Net CAGR (%)": data["cagr_net"] * 100.0,
+                "Gross CAGR (%)": data["cagr_gross"] * 100.0,
+                "Annual Turnover": data["turnover"],
+                "Cost Drag (%)": data["cost_drag"] * 100.0,
+                "Max Drawdown (%)": data["max_dd"] * 100.0
             })
-        st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
+        df_display = pd.DataFrame(table_rows).sort_values("Net Sharpe", ascending=False).reset_index(drop=True)
+        
+        # Add rank badges
+        rank_badges = ["🥇 1st", "🥈 2nd", "🥉 3rd", "4th", "5th", "6th"]
+        df_display.insert(0, "Rank", rank_badges[:len(df_display)])
+        
+        # Format for clean display
+        df_formatted = df_display.copy()
+        df_formatted["Net Sharpe"] = df_formatted["Net Sharpe"].map("{:.3f}".format)
+        df_formatted["Net CAGR (%)"] = df_formatted["Net CAGR (%)"].map("{:+.2f}%".format)
+        df_formatted["Gross CAGR (%)"] = df_formatted["Gross CAGR (%)"].map("{:+.2f}%".format)
+        df_formatted["Annual Turnover"] = df_formatted["Annual Turnover"].map("{:.2f}".format)
+        df_formatted["Cost Drag (%)"] = df_formatted["Cost Drag (%)"].map("{:.2f}%".format)
+        df_formatted["Max Drawdown (%)"] = df_formatted["Max Drawdown (%)"].map("{:.2f}%".format)
+        st.dataframe(df_formatted, use_container_width=True)
 
+        # 1-Click CSV Export (Enhancement 6)
+        export_df = pd.DataFrame({"Date": filtered_fdf["Date"]})
+        for m, d in sim_results.items():
+            export_df[f"{m}_Equity"] = d["cum_equity"]
+            export_df[f"{m}_Return"] = d["daily_returns"]
+        csv_data = export_df.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="💾 Download Simulated Portfolio Returns (CSV)",
+            data=csv_data,
+            file_name="simulated_volatility_targeting_results.csv",
+            mime="text/csv"
+        )
+
+        # Collapsible Methodology Drawer (Enhancement 7)
+        with st.expander("📖 View Mathematical Formulation & Volatility Targeting Logic"):
+            st.markdown("""
+            **Dynamic Volatility-Targeting Execution:**
+            1. At forecasting origin $t$, model generates volatility prediction $\hat{\sigma}_{t, t+k}$.
+            2. Target portfolio weight is sized inversely to predicted volatility:
+               $$w_t = \min\left(\max\left(\frac{\sigma_{target}}{\hat{\sigma}_t}, 0.0\right), 1.5\right)$$
+            3. Weight is shifted by 1 day ($w_{t-1}$) before multiplying tomorrow's continuous market return to guarantee **zero lookahead bias**.
+            4. Real-world transaction friction is deducted from position changes: $\text{Friction} = |w_t - w_{t-1}| \times (\text{Fee} + \text{Slippage})$.
+            """)
+
+    # =========================================================================
     # TAB 2: STATISTICAL ACCURACY
+    # =========================================================================
     with tab2:
         st.subheader("Statistical Forecast Accuracy vs. Realized Volatility")
         
@@ -319,7 +449,8 @@ def main():
             xaxis_title="Date",
             yaxis_title="Annualized Volatility",
             template="plotly_white",
-            hovermode="x unified"
+            hovermode="x unified",
+            height=430
         )
         st.plotly_chart(fig_forecasts, use_container_width=True)
 
@@ -334,7 +465,9 @@ def main():
                 st.dataframe(dm_matrix_df, use_container_width=True)
                 st.caption("All ML models reject the null hypothesis of equal forecast accuracy against GARCH at p < 0.01.")
 
+    # =========================================================================
     # TAB 3: SENSITIVITIES
+    # =========================================================================
     with tab3:
         st.subheader("Execution Sensitivity: The Turnover-Friction Dilemma")
         
@@ -369,14 +502,16 @@ def main():
                 fig_rebal.update_layout(template="plotly_white")
                 st.plotly_chart(fig_rebal, use_container_width=True)
 
+    # =========================================================================
     # TAB 4: STYLIZED FACTS
+    # =========================================================================
     with tab4:
         st.subheader("NIFTY 50 Stylized Facts & Historical Dynamics")
         if not mdf.empty:
             fig_market = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.08, subplot_titles=["NIFTY 50 Historical Index Price", "Daily Continuous Log Returns"])
             fig_market.add_trace(go.Scatter(x=mdf["Date"], y=mdf["Close"], mode="lines", name="Close Price", line=dict(color="#2563EB")), row=1, col=1)
             fig_market.add_trace(go.Scatter(x=mdf["Date"], y=mdf["log_return"], mode="lines", name="Log Return", line=dict(color="#DC2626", width=0.8)), row=2, col=1)
-            fig_market.update_layout(template="plotly_white", showlegend=False, height=500)
+            fig_market.update_layout(template="plotly_white", showlegend=False, height=450)
             st.plotly_chart(fig_market, use_container_width=True)
 
             col_s1, col_s2, col_s3, col_s4 = st.columns(4)
