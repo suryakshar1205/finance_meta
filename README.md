@@ -405,6 +405,12 @@ python src/final_polish_analysis.py
 python src/validate_results.py
 ```
 
+### Launch Interactive Research Dashboard
+```bash
+streamlit run app.py
+```
+*Launches the institutional web dashboard featuring live volatility targeting simulations, interactive transaction cost sliders, forecast tracking with Plotly, and rebalancing cadence trade-offs.*
+
 ---
 
 ## 12. Methodological Limitations
